@@ -22,7 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "Hexapod_Driver_PWM.h"
-
+#include "Robot_Base_Settings.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -41,13 +41,13 @@
 
 /* Private variables ---------------------------------------------------------*/
 I2C_HandleTypeDef hi2c1;
-
-SPI_HandleTypeDef hspi1;
-
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+Hexapod_PWM_Driver controller;
+void (*ActionTable[STATES_AMOUNT])(Hexapod_PWM_Driver *controller);
+uint8_t znak = 0;
+uint8_t state = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -55,91 +55,121 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_USART2_UART_Init(void);
-static void MX_SPI1_Init(void);
-/* USER CODE BEGIN PFP */
 
+/* USER CODE BEGIN PFP */
+void ForwardMovement(Hexapod_PWM_Driver *controller) {
+	state=znak;
+}
+
+void BackwardMovement(Hexapod_PWM_Driver *controller) {
+	state=znak;
+}
+
+void TurnRight(Hexapod_PWM_Driver *controller) {
+	state=znak;
+}
+
+void TurnLeft(Hexapod_PWM_Driver *controller) {
+	state=znak;
+}
+
+void Pause(Hexapod_PWM_Driver * controller){
+	state=znak;
+}
+
+void DefaultAction(Hexapod_PWM_Driver *controller) {
+    // Blank or wrong message
+}
+
+void InitActionTable(Hexapod_PWM_Driver *controller) {
+    for (int i = 0; i < STATES_AMOUNT; i++) {
+        ActionTable[i] = DefaultAction;
+    }
+    ActionTable['F'] = ForwardMovement;
+    ActionTable['B'] = BackwardMovement;
+    ActionTable['R'] = TurnRight;
+    ActionTable['L'] = TurnLeft;
+    ActionTable['P'] = Pause;
+}
 
 /* USER CODE END PFP */
 
-/* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+    if (huart->Instance == USART2) {
+    	(*ActionTable[znak])(&controller);
 
+
+        HAL_UART_Receive_IT(&huart2, &znak, 1);
+    }
+}
 /* USER CODE END 0 */
 
 /**
   * @brief  The application entry point.
   * @retval int
   */
-int main(void)
-{
-  /* USER CODE BEGIN 1 */
+int main(void) {
+    /* USER CODE BEGIN 1 */
 
-  /* USER CODE END 1 */
+    /* USER CODE END 1 */
 
-  /* MCU Configuration--------------------------------------------------------*/
+    /* MCU Configuration--------------------------------------------------------*/
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+    /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+    HAL_Init();
 
-  /* USER CODE BEGIN Init */
+    /* USER CODE BEGIN Init */
 
-  /* USER CODE END Init */
+    /* USER CODE END Init */
 
-  /* Configure the system clock */
-  SystemClock_Config();
+    /* Configure the system clock */
+    SystemClock_Config();
 
-  /* USER CODE BEGIN SysInit */
-  //mainCPP_INIT();		//		init function written in C+
-  /* USER CODE END SysInit */
+    /* USER CODE BEGIN SysInit */
 
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_I2C1_Init();
-  MX_USART2_UART_Init();
-  MX_SPI1_Init();
-  /* USER CODE BEGIN 2 */
+    /* USER CODE END SysInit */
 
+    /* Initialize all configured peripherals */
+    MX_GPIO_Init();
+    MX_I2C1_Init();
+    MX_USART2_UART_Init();
 
-  Hexapod_PWM_Driver controller;
+    /* USER CODE BEGIN 2 */
+    Hexapod_PWM_Driver_Init(&controller, &hi2c1, 0x80);  // PCA9685 address
+    Hexapod_PWM_Driver_BasePosition(&controller);
 
-  Hexapod_PWM_Driver_Init(&controller, &hi2c1, 0x80);  // PCA9685 address
+    HAL_UART_Receive_IT(&huart2, &znak, 1);
 
-  Hexapod_PWM_Driver_BasePosition(&controller);
+    InitActionTable(&controller);
+    HAL_Delay(1000);
 
-  HAL_Delay(5000);
+    /* USER CODE END 2 */
 
+    /* Infinite loop */
+    /* USER CODE BEGIN WHILE */
+    while (1) {
 
-  /* USER CODE END 2 */
+    	switch (state) {
+			case 'F':
+				Hexapod_PWM_Driver_Forward(&controller, 1);
+				break;
+			case 'B':
+				Hexapod_PWM_Driver_Forward(&controller, -1);
+				break;
+			case 'R':
+				Hexapod_PWM_Driver_Turnover(&controller, 1);
+				break;
+			case 'L':
+				Hexapod_PWM_Driver_Turnover(&controller, -1);
+				break;
+			case 'P':
+				Hexapod_PWM_Driver_BasePosition(&controller);
+				break;
+			default:
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  while (1)					//program loop
-  {
-  /*_________Cartesian moving range___________*/
-
-  //			X-Axis:		< -32 ; 32 >
-  //			Z-Axis:		< -62 ; -22>
-  //			Y-Axis: 	The y-axis is based on the
-  //						remaining coordinates, and due to the
-  //						construction fact, it is not required
-  //						for correct movement.
-  /*__________________________________________*/
-
-  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_15);
-//
-//for(int i = 0; i<3; i++)
-//  Hexapod_PWM_Driver_Forward(&controller, 1);
-//
-//for(int i = 0; i<3; i++)
-//  Hexapod_PWM_Driver_Turnover(&controller, 1);
-//
-//for(int i = 0; i<3; i++)
-//  Hexapod_PWM_Driver_Forward(&controller, -1);
-//
-//for(int i = 0; i<3; i++)
-//  Hexapod_PWM_Driver_Turnover(&controller, -1);
-
-
+				break;
+		}
 
     /* USER CODE END WHILE */
 
@@ -248,44 +278,6 @@ static void MX_I2C1_Init(void)
 }
 
 /**
-  * @brief SPI1 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_SPI1_Init(void)
-{
-
-  /* USER CODE BEGIN SPI1_Init 0 */
-
-  /* USER CODE END SPI1_Init 0 */
-
-  /* USER CODE BEGIN SPI1_Init 1 */
-
-  /* USER CODE END SPI1_Init 1 */
-  /* SPI1 parameter configuration*/
-  hspi1.Instance = SPI1;
-  hspi1.Init.Mode = SPI_MODE_MASTER;
-  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
-  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
-  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
-  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-  hspi1.Init.CRCPolynomial = 7;
-  if (HAL_SPI_Init(&hspi1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN SPI1_Init 2 */
-
-  /* USER CODE END SPI1_Init 2 */
-
-}
-
-/**
   * @brief USART2 Initialization Function
   * @param None
   * @retval None
@@ -301,7 +293,7 @@ static void MX_USART2_UART_Init(void)
 
   /* USER CODE END USART2_Init 1 */
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 115200;
+  huart2.Init.BaudRate = 38400;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;
