@@ -28,7 +28,9 @@ The repository includes KiCad files for the PCB and a project in STM Cube IDE.
 - <b>Transistors, Regulators, resistors, capacitors and other primary electronic components</b>
 
 - <b>PWM Servos:</b> MG90S
+
 <div style="text-align: center;">
+<img src="src/main_power_Pmos.png" alt="MCU" width="800">
 <img src="src/MCU_Schematic.png" alt="MCU" width="800">
 <img src="src/Schemat_PCA9685.png" alt="PCA" width="800">
 <img src="src/nRF_schematic.png" alt="nRF" width="800">
