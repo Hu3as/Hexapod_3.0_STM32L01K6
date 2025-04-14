@@ -8,10 +8,11 @@ The repository includes KiCad files for the PCB and a project in STM Cube IDE.
 
 <div style="text-align: center;">
 <img src="src/Hexapod.jpg" alt="HexapodPhoto" width="800">
-<img src="src/PCB_render.jpg" alt="PCBRender" width="800">
+<img src="src/PCB_render.jpg" alt="PCBRender" width="400">
 <img src="src/Top_PCB_View.png" alt="PCBTOP" width="800">
 <img src="src/Bottom_PCB_View.png" alt="PCBBOT" width="800">
 </div>
+
 ### Components used:
 
 - <b>Microcontroller:</b> STM32 L031K6T6
@@ -32,10 +33,13 @@ The repository includes KiCad files for the PCB and a project in STM Cube IDE.
 <img src="src/Schemat_PCA9685.png" alt="PCA" width="800">
 <img src="src/nRF_schematic.png" alt="nRF" width="800">
 </div>
+
 ### <div align="center">Software </div>
+
 The software operates through communication via I2C, SPI, and UART with the respective components: the PWM driver, nRF module, and Bluetooth. The software includes an algorithm responsible for moving the robot's legs in Cartesian space. The robot is capable of moving forward, backward, and rotating.
 
 ### Software Structure:
+
 <div style="text-align: center;">
 <img src="src/Software_Schematic.jpg" alt="SoftDiag" width="800">
 </div>
